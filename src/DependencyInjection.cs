@@ -1,6 +1,6 @@
 ﻿using Microsoft.OpenApi.Models;
 
-namespace AbySalto.Mid
+namespace Src
 {
     public static class DependencyInjection
     {
