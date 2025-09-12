@@ -2,7 +2,7 @@
 
 namespace AbySalto.Mid.Controllers
 {
-    public class ProductController : Controller
+    public class BasketController : Controller
     {
     }
 }
