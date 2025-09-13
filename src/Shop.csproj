@@ -12,7 +12,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="Domain\Domain.csproj" />
+    <ProjectReference Include="Infrastructure\Infrastructure.csproj" />
+  </ItemGroup>
 
+  <!-- This ensures the Shop project only references the compiled assemblies from the Domain and Infrastructure projects -->
+  <ItemGroup>
+    <Compile Remove="Domain\**" />
+    <Compile Remove="Infrastructure\**" />
+    <EmbeddedResource Remove="Domain\**" />
+    <EmbeddedResource Remove="Infrastructure\**" />
+    <None Remove="Domain\**" />
+    <None Remove="Infrastructure\**" />
   </ItemGroup>
 
 </Project>
