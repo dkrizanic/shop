@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Domain.Models;
 using Domain.Repositories;
+using Domain.Validators;
+using FluentValidation;
 
 namespace Application.Controllers
 {
@@ -9,70 +11,60 @@ namespace Application.Controllers
     public class ProductController : ControllerBase
     {
         private readonly IProductService _productService;
+        private readonly IValidator<ProductQueryParameters> _queryValidator;
 
-        public ProductController(IProductService productService)
+        public ProductController(IProductService productService, IValidator<ProductQueryParameters> queryValidator)
         {
             _productService = productService;
+            _queryValidator = queryValidator;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetProducts([FromQuery] ProductQueryParameters parameters)
         {
-            try
+            var validationResult = await _queryValidator.ValidateAsync(parameters);
+            if (!validationResult.IsValid)
             {
-                var result = await _productService.GetProductsAsync(parameters);
-                return Ok(result);
+                return BadRequest(validationResult.Errors);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Failed to fetch products", error = ex.Message });
-            }
+
+            var result = await _productService.GetProductsAsync(parameters);
+            return Ok(result);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProduct(int id)
         {
-            try
-            {
-                var product = await _productService.GetProductByIdAsync(id);
-                if (product == null)
-                    return NotFound();
+            if (id <= 0)
+                return BadRequest("Product ID must be greater than 0");
 
-                return Ok(product);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Failed to fetch product", error = ex.Message });
-            }
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
+                return NotFound();
+
+            return Ok(product);
         }
 
         [HttpGet("search")]
         public async Task<IActionResult> SearchProducts([FromQuery] string q, [FromQuery] ProductQueryParameters parameters)
         {
-            try
+            parameters.SearchTerm = q;
+
+            var validationResult = await _queryValidator.ValidateAsync(parameters);
+            if (!validationResult.IsValid)
             {
-                parameters.SearchTerm = q;
-                var result = await _productService.GetProductsAsync(parameters);
-                return Ok(result);
+                return BadRequest(validationResult.Errors);
             }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Failed to search products", error = ex.Message });
-            }
+
+            var result = await _productService.GetProductsAsync(parameters);
+            return Ok(result);
         }
 
         [HttpGet("categories")]
         public async Task<IActionResult> GetCategories()
         {
-            try
-            {
-                var categories = await _productService.GetCategoriesAsync();
-                return Ok(categories);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Failed to fetch categories", error = ex.Message });
-            }
+            var categories = await _productService.GetCategoriesAsync();
+            return Ok(categories);
         }
     }
 }

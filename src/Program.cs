@@ -3,6 +3,10 @@ using Infrastructure.Data;
 using Infrastructure.Services;
 using Infrastructure.Repositories;
 using Domain.Repositories;
+using FluentValidation;
+using Domain.Validators;
+using Application.Middleware;
+using Domain.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,11 +21,17 @@ builder.Services.AddHttpClient<IDummyJsonService, DummyJsonService>();
 builder.Services.AddScoped<IUserFavoriteRepository, UserFavoriteRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
+// Add FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<ProductQueryParametersValidator>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Add global exception handling middleware
+app.UseMiddleware<GlobalExceptionMiddleware>();
 
 if (app.Environment.IsDevelopment())
 {
