@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Domain.Entities;
+using Domain.Models;
 
 namespace Infrastructure.Data
 {
@@ -11,6 +11,7 @@ namespace Infrastructure.Data
 
         public DbSet<Product> Products { get; set; }
         public DbSet<UserFavorite> UserFavorites { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,8 +27,6 @@ namespace Infrastructure.Data
                 entity.Property(e => e.Rating).HasColumnType("decimal(3,2)");
                 entity.Property(e => e.Brand).HasMaxLength(100);
                 entity.Property(e => e.Thumbnail).HasMaxLength(500);
-                entity.Property(e => e.CreatedAt).IsRequired();
-                entity.Property(e => e.UpdatedAt).IsRequired();
 
                 entity.HasIndex(e => e.Category);
                 entity.HasIndex(e => e.Brand);
@@ -43,6 +42,19 @@ namespace Infrastructure.Data
                 entity.HasIndex(e => new { e.UserId, e.ProductId }).IsUnique();
 
                 // No foreign key constraint since products come from external API
+            });
+
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(256);
+                entity.Property(e => e.PasswordHash).IsRequired().HasMaxLength(256);
+                entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.Property(e => e.UpdatedAt).IsRequired();
+
+                entity.HasIndex(e => e.Email).IsUnique();
             });
         }
     }

@@ -1,4 +1,4 @@
-using Domain.Entities;
+using Domain.Models;
 using FluentAssertions;
 using Infrastructure.Data;
 using Infrastructure.Repositories;

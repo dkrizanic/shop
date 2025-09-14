@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Domain.Models;
 using Domain.Repositories;
 using Infrastructure.Data;
-using DomainEntity = Domain.Entities;
 
 namespace Infrastructure.Repositories
 {
@@ -32,7 +31,7 @@ namespace Infrastructure.Repositories
                 };
             }
 
-            var favoriteEntity = new DomainEntity.UserFavorite
+            var favoriteEntity = new UserFavorite
             {
                 UserId = userId,
                 ProductId = productId
