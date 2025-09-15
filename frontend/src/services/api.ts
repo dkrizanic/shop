@@ -1,22 +1,10 @@
 import axios from 'axios';
-import {
-  Product,
-  ProductQueryParameters,
-  PagedResult,
-  UserRegistration,
-  UserLogin,
-  AuthResponse,
-  UserFavorite,
-  AddFavoriteRequest,
-  ShoppingCartItem,
-  AddToCart,
-  UpdateCartItem,
-  ShoppingCart,
-  CheckoutValidationResult,
-  Category
-} from '../types';
+import { ProductQueryParameters, PagedResult, Product } from '../types';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://localhost:7292';
+const API_BASE_URL = 'http://localhost:5269';
+
+console.log('API_BASE_URL:', API_BASE_URL);
+console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -27,6 +15,7 @@ const api = axios.create({
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {
+  console.log('Making request to:', config.baseURL + config.url);
   const token = localStorage.getItem('token');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -36,14 +25,14 @@ api.interceptors.request.use((config) => {
 
 // Auth API
 export const authAPI = {
-  register: async (userData: UserRegistration): Promise<AuthResponse> => {
+  register: async (userData: any) => {
     const response = await api.post('/api/auth/register', userData);
-    return response.data as AuthResponse;
+    return response.data;
   },
 
-  login: async (credentials: UserLogin): Promise<AuthResponse> => {
+  login: async (credentials: any) => {
     const response = await api.post('/api/auth/login', credentials);
-    return response.data as AuthResponse;
+    return response.data;
   },
 };
 
@@ -59,62 +48,57 @@ export const productsAPI = {
     return response.data as Product;
   },
 
-  getCategories: async (): Promise<Category[]> => {
+  getCategories: async () => {
     const response = await api.get('/api/product/categories');
-    return response.data as Category[];
+    return response.data;
   },
 };
 
 // User Favorites API
 export const favoritesAPI = {
-  getFavorites: async (): Promise<UserFavorite[]> => {
-    const response = await api.get('/api/userfavorite');
-    return response.data as UserFavorite[];
+  getFavorites: async (userId: string) => {
+    const response = await api.get(`/api/userfavorite/user/${userId}`);
+    return response.data;
   },
 
-  addFavorite: async (request: AddFavoriteRequest): Promise<UserFavorite> => {
+  addFavorite: async (request: any) => {
     const response = await api.post('/api/userfavorite', request);
-    return response.data as UserFavorite;
+    return response.data;
   },
 
-  removeFavorite: async (favoriteId: number): Promise<void> => {
-    await api.delete(`/api/userfavorite/${favoriteId}`);
+  removeFavorite: async (userId: string, productId: number) => {
+    await api.delete(`/api/userfavorite?userId=${userId}&productId=${productId}`);
   },
 
-  isFavorite: async (productId: number): Promise<boolean> => {
-    const response = await api.get(`/api/userfavorite/is-favorite/${productId}`);
-    return response.data as boolean;
+  isFavorite: async (userId: string, productId: number) => {
+    const response = await api.get(`/api/userfavorite/check?userId=${userId}&productId=${productId}`);
+    return response.data;
   },
 };
 
 // Shopping Cart API
 export const cartAPI = {
-  getCart: async (): Promise<ShoppingCart> => {
+  getCart: async () => {
     const response = await api.get('/api/shoppingcart');
-    return response.data as ShoppingCart;
+    return response.data;
   },
 
-  addToCart: async (request: AddToCart): Promise<ShoppingCartItem> => {
-    const response = await api.post('/api/shoppingcart/add', request);
-    return response.data as ShoppingCartItem;
+  addToCart: async (request: any) => {
+    const response = await api.post('/api/shoppingcart/items', request);
+    return response.data;
   },
 
-  updateCartItem: async (itemId: number, request: UpdateCartItem): Promise<ShoppingCartItem> => {
-    const response = await api.put(`/api/shoppingcart/update/${itemId}`, request);
-    return response.data as ShoppingCartItem;
+  updateCartItem: async (itemId: number, request: any) => {
+    const response = await api.put(`/api/shoppingcart/items/${itemId}`, request);
+    return response.data;
   },
 
-  removeFromCart: async (itemId: number): Promise<void> => {
-    await api.delete(`/api/shoppingcart/remove/${itemId}`);
+  removeFromCart: async (itemId: number) => {
+    await api.delete(`/api/shoppingcart/items/${itemId}`);
   },
 
-  clearCart: async (): Promise<void> => {
-    await api.delete('/api/shoppingcart/clear');
-  },
-
-  validateCheckout: async (): Promise<CheckoutValidationResult> => {
-    const response = await api.post('/api/shoppingcart/validate-checkout');
-    return response.data as CheckoutValidationResult;
+  clearCart: async () => {
+    await api.delete('/api/shoppingcart');
   },
 };
 

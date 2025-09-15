@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ProductQueryParameters, Category } from '../../types';
-import { productsAPI } from '../../services/api-fixed';
+import { productsAPI } from '../../services/api';
 import './Products.css';
 
 interface ProductFiltersProps {

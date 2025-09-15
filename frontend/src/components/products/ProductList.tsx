@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Product, ProductQueryParameters, PagedResult } from '../../types';
-import { productsAPI, favoritesAPI } from '../../services/api-fixed';
+import { productsAPI, favoritesAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import ProductCard from './ProductCard';
 import ProductFilters from './ProductFilters';

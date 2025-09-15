@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart } from '../../types';
-import { cartAPI } from '../../services/api-fixed';
+import { cartAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import CartItem from './CartItem';
 import './Cart.css';

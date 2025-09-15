@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Product } from '../../types';
-import { cartAPI, favoritesAPI } from '../../services/api-fixed';
+import { cartAPI, favoritesAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import './Products.css';
 
