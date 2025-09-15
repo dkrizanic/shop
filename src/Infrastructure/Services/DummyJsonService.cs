@@ -25,7 +25,9 @@ namespace Infrastructure.Services
         public async Task<PagedResult<Product>> GetProductsAsync(ProductQueryParameters parameters)
         {
             var skip = (parameters.PageNumber - 1) * parameters.PageSize;
-            var response = await _httpClient.GetAsync($"products?limit={parameters.PageSize}&skip={skip}");
+            var url = $"products?limit={parameters.PageSize}&skip={skip}";
+            Console.WriteLine($"DummyJsonService: Calling {url}");
+            var response = await _httpClient.GetAsync(url);
 
             if (!response.IsSuccessStatusCode)
                 throw new HttpRequestException($"Failed to fetch products: {response.StatusCode}");
@@ -48,7 +50,9 @@ namespace Infrastructure.Services
         public async Task<PagedResult<Product>> SearchProductsAsync(string searchTerm, ProductQueryParameters parameters)
         {
             var skip = (parameters.PageNumber - 1) * parameters.PageSize;
-            var response = await _httpClient.GetAsync($"products/search?q={Uri.EscapeDataString(searchTerm)}&limit={parameters.PageSize}&skip={skip}");
+            var url = $"products/search?q={Uri.EscapeDataString(searchTerm)}&limit={parameters.PageSize}&skip={skip}";
+            Console.WriteLine($"DummyJsonService: Searching with term '{searchTerm}', calling {url}");
+            var response = await _httpClient.GetAsync(url);
 
             if (!response.IsSuccessStatusCode)
                 throw new HttpRequestException($"Failed to search products: {response.StatusCode}");

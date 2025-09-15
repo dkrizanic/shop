@@ -20,8 +20,30 @@ namespace Application.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetProducts([FromQuery] ProductQueryParameters parameters)
+        public async Task<IActionResult> GetProducts(
+            [FromQuery] string? search = null,
+            [FromQuery] string? category = null,
+            [FromQuery] decimal? minPrice = null,
+            [FromQuery] decimal? maxPrice = null,
+            [FromQuery] string? sortBy = null,
+            [FromQuery] string? sortOrder = "asc",
+            [FromQuery] int pageNumber = 1,
+            [FromQuery] int pageSize = 10)
         {
+            var parameters = new ProductQueryParameters
+            {
+                SearchTerm = search,
+                Category = category,
+                MinPrice = minPrice,
+                MaxPrice = maxPrice,
+                SortBy = sortBy,
+                SortOrder = sortOrder,
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
+
+            Console.WriteLine($"ProductController: Received parameters - SearchTerm: '{parameters.SearchTerm}', Category: '{parameters.Category}', MinPrice: {parameters.MinPrice}, MaxPrice: {parameters.MaxPrice}, SortBy: '{parameters.SortBy}', SortOrder: '{parameters.SortOrder}'");
+
             var validationResult = await _queryValidator.ValidateAsync(parameters);
             if (!validationResult.IsValid)
             {
