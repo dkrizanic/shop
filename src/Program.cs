@@ -26,8 +26,10 @@ builder.Services.AddHttpClient<IDummyJsonService, DummyJsonService>();
 // Register repositories and services
 builder.Services.AddScoped<IUserFavoriteRepository, UserFavoriteRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IShoppingCartRepository, ShoppingCartRepository>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IShoppingCartService, ShoppingCartService>();
 
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<ProductQueryParametersValidator>();

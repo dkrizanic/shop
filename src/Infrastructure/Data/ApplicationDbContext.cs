@@ -12,6 +12,7 @@ namespace Infrastructure.Data
         public DbSet<Product> Products { get; set; }
         public DbSet<UserFavorite> UserFavorites { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<ShoppingCartItem> ShoppingCartItems { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -55,6 +56,27 @@ namespace Infrastructure.Data
                 entity.Property(e => e.UpdatedAt).IsRequired();
 
                 entity.HasIndex(e => e.Email).IsUnique();
+            });
+
+            modelBuilder.Entity<ShoppingCartItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.UserId).IsRequired();
+                entity.Property(e => e.ProductId).IsRequired();
+                entity.Property(e => e.Quantity).IsRequired();
+                entity.Property(e => e.CreatedAt).IsRequired();
+                entity.Property(e => e.UpdatedAt).IsRequired();
+
+                entity.HasIndex(e => new { e.UserId, e.ProductId }).IsUnique();
+                entity.HasIndex(e => e.UserId);
+
+                // Foreign key relationship with User
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // No foreign key constraint for ProductId since products come from external API
             });
         }
     }
