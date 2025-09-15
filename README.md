@@ -27,6 +27,51 @@ cd src
 dotnet watch run
 ```
 
+## Docker Deployment
+
+### Quick Start with Docker
+```bash
+# Build and run both frontend and backend services
+docker-compose up --build
+
+# Run in detached mode
+docker-compose up -d --build
+
+# Stop all services
+docker-compose down
+```
+
+### Individual Service Deployment
+```bash
+# Build and run backend only
+cd src
+docker build -t shop-backend .
+docker run -p 8080:8080 shop-backend
+
+# Build and run frontend only
+cd frontend
+docker build -t shop-frontend .
+docker run -p 3000:80 shop-frontend
+```
+
+### Production Deployment
+```bash
+# For production deployment (e.g., AWS, Azure, etc.)
+docker-compose -f docker-compose.yml up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Update services
+docker-compose pull
+docker-compose up -d --build
+```
+
+### Service URLs (Docker)
+- **Frontend**: http://localhost:3000
+- **Backend API**: http://localhost:8080
+- **Swagger UI**: http://localhost:8080/swagger
+
 ### Database Setup
 ```bash
 # Create and apply database migrations (first time setup)
@@ -75,6 +120,7 @@ dotnet test --verbosity normal
 
 ## Project Structure
 
+### Backend (.NET API)
 ```
 src/
 ├── Application/
@@ -90,8 +136,28 @@ src/
 └── Shop.csproj           # Project file
 
 tests/
-├── Shop.UnitTests/        # Unit tests (17 tests)
+├── Shop.UnitTests/        # Unit tests 
 └── Shop.IntegrationTests/ # Integration tests (API tests)
+```
+
+### Frontend (React TypeScript)
+```
+frontend/
+├── public/                # Static assets
+├── src/
+│   ├── components/
+│   │   ├── auth/         # Authentication components
+│   │   ├── cart/         # Shopping cart components
+│   │   ├── common/       # Shared/reusable components
+│   │   ├── favorites/    # User favorites components
+│   │   └── products/     # Product listing and detail components
+│   ├── context/          # React context providers
+│   ├── services/         # API service layer
+│   ├── types/           # TypeScript type definitions
+│   ├── App.tsx          # Main application component
+│   └── index.tsx        # Application entry point
+├── package.json         # Dependencies and scripts
+└── tsconfig.json       # TypeScript configuration
 ```
 
 ## Database Migrations
