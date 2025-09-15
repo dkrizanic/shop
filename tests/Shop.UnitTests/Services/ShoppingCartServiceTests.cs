@@ -131,7 +131,7 @@ namespace Shop.UnitTests.Services
             // Arrange
             var userId = 1;
             var addToCartDto = new AddToCartDTO { ProductId = 10, Quantity = 3 };
-            var product = new ProductDTO { Id = 10, Title = "Test Product", Price = 19.99m };
+            var product = new ProductDTO { Id = 10, Title = "Test Product", Price = 19.99m, Stock = 10 };
             var cartItem = new ShoppingCartItem
             {
                 Id = 1,
@@ -144,6 +144,8 @@ namespace Shop.UnitTests.Services
 
             _mockProductService.Setup(x => x.GetProductByIdAsync(10, null))
                 .ReturnsAsync(product);
+            _mockCartRepository.Setup(x => x.GetCartItemAsync(userId, 10))
+                .ReturnsAsync((ShoppingCartItem?)null);
             _mockCartRepository.Setup(x => x.AddToCartAsync(userId, 10, 3))
                 .ReturnsAsync(cartItem);
 
@@ -177,6 +179,73 @@ namespace Shop.UnitTests.Services
         }
 
         [Fact]
+        public async Task AddToCartAsync_WithOutOfStockProduct_ShouldThrowInvalidOperationException()
+        {
+            // Arrange
+            var userId = 1;
+            var addToCartDto = new AddToCartDTO { ProductId = 10, Quantity = 1 };
+            var product = new ProductDTO { Id = 10, Title = "Out of Stock Product", Price = 19.99m, Stock = 0 };
+
+            _mockProductService.Setup(x => x.GetProductByIdAsync(10, null))
+                .ReturnsAsync(product);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _cartService.AddToCartAsync(userId, addToCartDto));
+
+            exception.Message.Should().Contain("Out of Stock Product' is currently out of stock");
+        }
+
+        [Fact]
+        public async Task AddToCartAsync_WithInsufficientStock_ShouldThrowInvalidOperationException()
+        {
+            // Arrange
+            var userId = 1;
+            var addToCartDto = new AddToCartDTO { ProductId = 10, Quantity = 5 };
+            var product = new ProductDTO { Id = 10, Title = "Low Stock Product", Price = 19.99m, Stock = 3 };
+
+            _mockProductService.Setup(x => x.GetProductByIdAsync(10, null))
+                .ReturnsAsync(product);
+            _mockCartRepository.Setup(x => x.GetCartItemAsync(userId, 10))
+                .ReturnsAsync((ShoppingCartItem?)null);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _cartService.AddToCartAsync(userId, addToCartDto));
+
+            exception.Message.Should().Contain("Only 3 items available for 'Low Stock Product'. Requested: 5");
+        }
+
+        [Fact]
+        public async Task AddToCartAsync_WithExistingCartItemExceedingStock_ShouldThrowInvalidOperationException()
+        {
+            // Arrange
+            var userId = 1;
+            var addToCartDto = new AddToCartDTO { ProductId = 10, Quantity = 2 };
+            var product = new ProductDTO { Id = 10, Title = "Limited Stock Product", Price = 19.99m, Stock = 3 };
+            var existingCartItem = new ShoppingCartItem
+            {
+                Id = 1,
+                UserId = userId,
+                ProductId = 10,
+                Quantity = 2,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _mockProductService.Setup(x => x.GetProductByIdAsync(10, null))
+                .ReturnsAsync(product);
+            _mockCartRepository.Setup(x => x.GetCartItemAsync(userId, 10))
+                .ReturnsAsync(existingCartItem);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _cartService.AddToCartAsync(userId, addToCartDto));
+
+            exception.Message.Should().Contain("Cannot add 2 items. Only 1 more items can be added to cart for 'Limited Stock Product'");
+        }
+
+        [Fact]
         public async Task UpdateCartItemQuantityAsync_WithValidItem_ShouldUpdateQuantity()
         {
             // Arrange
@@ -201,7 +270,7 @@ namespace Shop.UnitTests.Services
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
-            var product = new ProductDTO { Id = productId, Title = "Test Product", Price = 12.50m };
+            var product = new ProductDTO { Id = productId, Title = "Test Product", Price = 12.50m, Stock = 10 };
 
             _mockCartRepository.Setup(x => x.GetCartItemAsync(userId, productId))
                 .ReturnsAsync(existingItem);
@@ -217,6 +286,36 @@ namespace Shop.UnitTests.Services
             result.Should().NotBeNull();
             result.Quantity.Should().Be(5);
             result.TotalPrice.Should().Be(62.50m); // 12.50 * 5
+        }
+
+        [Fact]
+        public async Task UpdateCartItemQuantityAsync_WithInsufficientStock_ShouldThrowInvalidOperationException()
+        {
+            // Arrange
+            var userId = 1;
+            var productId = 10;
+            var updateDto = new UpdateCartItemDTO { Quantity = 10 };
+            var existingItem = new ShoppingCartItem
+            {
+                Id = 1,
+                UserId = userId,
+                ProductId = productId,
+                Quantity = 2,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            var product = new ProductDTO { Id = productId, Title = "Limited Stock Product", Price = 12.50m, Stock = 5 };
+
+            _mockCartRepository.Setup(x => x.GetCartItemAsync(userId, productId))
+                .ReturnsAsync(existingItem);
+            _mockProductService.Setup(x => x.GetProductByIdAsync(productId, null))
+                .ReturnsAsync(product);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _cartService.UpdateCartItemQuantityAsync(userId, productId, updateDto));
+
+            exception.Message.Should().Contain("Cannot update quantity to 10. Only 5 items available for 'Limited Stock Product'");
         }
 
         [Fact]
@@ -300,6 +399,188 @@ namespace Shop.UnitTests.Services
 
             // Assert
             result.Should().Be(expectedCount);
+        }
+
+        [Fact]
+        public async Task ValidateCartForCheckoutAsync_WithEmptyCart_ShouldReturnInvalid()
+        {
+            // Arrange
+            var userId = 1;
+            _mockCartRepository.Setup(x => x.GetUserCartItemsAsync(userId))
+                .ReturnsAsync(new List<ShoppingCartItem>());
+
+            // Act
+            var result = await _cartService.ValidateCartForCheckoutAsync(userId);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeFalse();
+            result.Message.Should().Be("Cart is empty");
+        }
+
+        [Fact]
+        public async Task ValidateCartForCheckoutAsync_WithValidStock_ShouldReturnValid()
+        {
+            // Arrange
+            var userId = 1;
+            var cartItems = new List<ShoppingCartItem>
+            {
+                new ShoppingCartItem { Id = 1, UserId = userId, ProductId = 10, Quantity = 2, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+            };
+            var product = new ProductDTO { Id = 10, Title = "Valid Product", Price = 19.99m, Stock = 5 };
+
+            _mockCartRepository.Setup(x => x.GetUserCartItemsAsync(userId))
+                .ReturnsAsync(cartItems);
+            _mockProductService.Setup(x => x.GetProductByIdAsync(10, null))
+                .ReturnsAsync(product);
+
+            // Act
+            var result = await _cartService.ValidateCartForCheckoutAsync(userId);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeTrue();
+            result.Errors.Should().BeEmpty();
+        }
+
+        [Fact]
+        public async Task ValidateCartForCheckoutAsync_WithOutOfStockProduct_ShouldRemoveItemAndReturnInvalid()
+        {
+            // Arrange
+            var userId = 1;
+            var cartItems = new List<ShoppingCartItem>
+            {
+                new ShoppingCartItem { Id = 1, UserId = userId, ProductId = 10, Quantity = 2, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+            };
+            var product = new ProductDTO { Id = 10, Title = "Out of Stock Product", Price = 19.99m, Stock = 0 };
+
+            _mockCartRepository.Setup(x => x.GetUserCartItemsAsync(userId))
+                .ReturnsAsync(cartItems);
+            _mockProductService.Setup(x => x.GetProductByIdAsync(10, null))
+                .ReturnsAsync(product);
+
+            // Act
+            var result = await _cartService.ValidateCartForCheckoutAsync(userId);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().HaveCount(1);
+            result.Errors[0].ErrorType.Should().Be(CheckoutErrorType.OutOfStock);
+            result.Errors[0].ProductTitle.Should().Be("Out of Stock Product");
+
+            // Verify item was removed from cart
+            _mockCartRepository.Verify(x => x.RemoveProductFromCartAsync(userId, 10), Times.Once);
+        }
+
+        [Fact]
+        public async Task ValidateCartForCheckoutAsync_WithInsufficientStock_ShouldAdjustQuantity()
+        {
+            // Arrange
+            var userId = 1;
+            var cartItems = new List<ShoppingCartItem>
+            {
+                new ShoppingCartItem { Id = 1, UserId = userId, ProductId = 10, Quantity = 5, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+            };
+            var product = new ProductDTO { Id = 10, Title = "Limited Stock Product", Price = 19.99m, Stock = 3 };
+
+            _mockCartRepository.Setup(x => x.GetUserCartItemsAsync(userId))
+                .ReturnsAsync(cartItems);
+            _mockProductService.Setup(x => x.GetProductByIdAsync(10, null))
+                .ReturnsAsync(product);
+
+            // Act
+            var result = await _cartService.ValidateCartForCheckoutAsync(userId);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().HaveCount(1);
+            result.Errors[0].ErrorType.Should().Be(CheckoutErrorType.InsufficientStock);
+            result.Errors[0].RequestedQuantity.Should().Be(5);
+            result.Errors[0].AvailableStock.Should().Be(3);
+            result.Errors[0].AdjustedQuantity.Should().Be(3);
+
+            result.UpdatedCart.Should().NotBeNull();
+            result.UpdatedCart!.Items.Should().HaveCount(1);
+            result.UpdatedCart.Items[0].Quantity.Should().Be(3);
+
+            // Verify quantity was updated in database
+            _mockCartRepository.Verify(x => x.UpdateCartItemQuantityAsync(1, 3), Times.Once);
+        }
+
+        [Fact]
+        public async Task ValidateCartForCheckoutAsync_WithNonExistentProduct_ShouldRemoveItem()
+        {
+            // Arrange
+            var userId = 1;
+            var cartItems = new List<ShoppingCartItem>
+            {
+                new ShoppingCartItem { Id = 1, UserId = userId, ProductId = 999, Quantity = 2, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
+            };
+
+            _mockCartRepository.Setup(x => x.GetUserCartItemsAsync(userId))
+                .ReturnsAsync(cartItems);
+            _mockProductService.Setup(x => x.GetProductByIdAsync(999, null))
+                .ReturnsAsync((ProductDTO?)null);
+
+            // Act
+            var result = await _cartService.ValidateCartForCheckoutAsync(userId);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().HaveCount(1);
+            result.Errors[0].ErrorType.Should().Be(CheckoutErrorType.ProductNotFound);
+            result.Errors[0].ProductId.Should().Be(999);
+
+            // Verify item was removed from cart
+            _mockCartRepository.Verify(x => x.RemoveProductFromCartAsync(userId, 999), Times.Once);
+        }
+
+        [Fact]
+        public async Task ValidateCartForCheckoutAsync_WithMixedStockIssues_ShouldHandleAllScenarios()
+        {
+            // Arrange
+            var userId = 1;
+            var cartItems = new List<ShoppingCartItem>
+            {
+                new ShoppingCartItem { Id = 1, UserId = userId, ProductId = 10, Quantity = 2, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }, // Valid
+                new ShoppingCartItem { Id = 2, UserId = userId, ProductId = 20, Quantity = 5, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }, // Insufficient stock
+                new ShoppingCartItem { Id = 3, UserId = userId, ProductId = 30, Quantity = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }, // Out of stock
+                new ShoppingCartItem { Id = 4, UserId = userId, ProductId = 999, Quantity = 1, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow } // Not found
+            };
+
+            var product1 = new ProductDTO { Id = 10, Title = "Valid Product", Price = 19.99m, Stock = 5 };
+            var product2 = new ProductDTO { Id = 20, Title = "Low Stock Product", Price = 29.99m, Stock = 3 };
+            var product3 = new ProductDTO { Id = 30, Title = "Out of Stock Product", Price = 39.99m, Stock = 0 };
+
+            _mockCartRepository.Setup(x => x.GetUserCartItemsAsync(userId))
+                .ReturnsAsync(cartItems);
+            _mockProductService.Setup(x => x.GetProductByIdAsync(10, null))
+                .ReturnsAsync(product1);
+            _mockProductService.Setup(x => x.GetProductByIdAsync(20, null))
+                .ReturnsAsync(product2);
+            _mockProductService.Setup(x => x.GetProductByIdAsync(30, null))
+                .ReturnsAsync(product3);
+            _mockProductService.Setup(x => x.GetProductByIdAsync(999, null))
+                .ReturnsAsync((ProductDTO?)null);
+
+            // Act
+            var result = await _cartService.ValidateCartForCheckoutAsync(userId);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().HaveCount(3); // Insufficient stock, out of stock, not found
+
+            result.UpdatedCart.Should().NotBeNull();
+            result.UpdatedCart!.Items.Should().HaveCount(2); // Valid product + adjusted quantity product
+
+            // Verify database operations
+            _mockCartRepository.Verify(x => x.UpdateCartItemQuantityAsync(2, 3), Times.Once); // Adjust quantity
+            _mockCartRepository.Verify(x => x.RemoveProductFromCartAsync(userId, 30), Times.Once); // Remove out of stock
+            _mockCartRepository.Verify(x => x.RemoveProductFromCartAsync(userId, 999), Times.Once); // Remove not found
         }
     }
 }

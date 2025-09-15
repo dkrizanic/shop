@@ -10,4 +10,5 @@ public interface IShoppingCartService
     Task<bool> RemoveFromCartAsync(int userId, int productId);
     Task ClearCartAsync(int userId);
     Task<int> GetCartItemCountAsync(int userId);
+    Task<CheckoutValidationResult> ValidateCartForCheckoutAsync(int userId);
 }
