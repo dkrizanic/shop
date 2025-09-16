@@ -1,11 +1,12 @@
 import axios from 'axios';
 import { ProductQueryParameters, PagedResult, Product } from '../types';
 
-// Use relative URLs in production (same origin), localhost in development
-const API_BASE_URL = process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5269';
+// Always use the environment variable, fallback to localhost:8080
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
 
 console.log('API_BASE_URL:', API_BASE_URL);
 console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
 
 const api = axios.create({
   baseURL: API_BASE_URL,
