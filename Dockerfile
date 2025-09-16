@@ -35,13 +35,11 @@ COPY --from=build /app/out .
 
 # Note: Using /tmp directory for SQLite database on Render (writable filesystem)
 
-# Expose port
-EXPOSE 80
-EXPOSE 5269
+# Expose port (will be set by Render via PORT env var)
+EXPOSE 5000
 
 # Set environment variables (PORT will be provided by Render)
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV PORT=5000
 
 # Run the application
 ENTRYPOINT ["dotnet", "Shop.dll"]
