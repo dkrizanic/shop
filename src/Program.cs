@@ -84,6 +84,10 @@ if (app.Environment.IsDevelopment())
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Add a simple health check endpoint
+app.MapGet("/", () => "Shop API is running!");
+
 app.MapControllers();
 
 app.Run();
