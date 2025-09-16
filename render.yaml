@@ -2,8 +2,8 @@ services:
   - type: web
     name: shop-backend
     env: docker
-    dockerfilePath: ./src/Dockerfile
-    dockerContext: ./src
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     plan: free
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
@@ -17,7 +17,7 @@ services:
       - key: ConnectionStrings__DefaultConnection
         value: Data Source=/app/data/shop.db
       - key: FRONTEND_URL
-        value: https://your-frontend-app.onrender.com  # Update this after deploying frontend
+        value: https://shop-frontend.onrender.com
 
   - type: web
     name: shop-frontend
@@ -27,4 +27,4 @@ services:
     plan: free
     envVars:
       - key: REACT_APP_API_URL
-        value: https://shop-backend.onrender.com  # Update with your backend URL
+        value: https://shop-backend.onrender.com
