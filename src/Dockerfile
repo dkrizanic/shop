@@ -31,7 +31,6 @@ EXPOSE 5269
 
 # Set environment variables (PORT will be provided by Render)
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_URLS=http://+:${PORT:-5000}
 
 # Run the application
 ENTRYPOINT ["dotnet", "Shop.dll"]

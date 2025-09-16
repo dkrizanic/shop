@@ -13,6 +13,16 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure port for Render deployment
+if (builder.Environment.IsProduction())
+{
+    var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+    builder.WebHost.ConfigureKestrel(options =>
+    {
+        options.ListenAnyIP(int.Parse(port));
+    });
+}
+
 // Add Entity Framework
 if (builder.Environment.EnvironmentName != "Testing")
 {
