@@ -1,9 +1,11 @@
 # Use the official .NET SDK image for building
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
-# Copy csproj and restore dependencies
-COPY *.csproj ./
+# Copy csproj files and restore dependencies
+COPY ["*.csproj", "./"]
+COPY ["Domain/Domain.csproj", "Domain/"]
+COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
 RUN dotnet restore
 
 # Copy everything else and build
@@ -11,7 +13,7 @@ COPY . ./
 RUN dotnet publish -c Release -o out
 
 # Use the runtime image for the final stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
 # Install SQLite (needed for the database)
