@@ -78,16 +78,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Add CORS
+// Add CORS - Allow all origins
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
-        var frontendUrl = builder.Configuration["FRONTEND_URL"] ?? "http://localhost:3000";
-        policy.WithOrigins("http://localhost:3000", frontendUrl)
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowAnyMethod();
     });
 });
 
