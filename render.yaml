@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: shop-backend
+    env: docker
+    dockerfilePath: ./src/Dockerfile
+    dockerContext: ./src
+    plan: free
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: JwtSettings__SecretKey
+        generateValue: true  # This will generate a secure random value
+      - key: JwtSettings__Issuer
+        value: ShopAPI
+      - key: JwtSettings__Audience
+        value: ShopAPIUsers
+      - key: ConnectionStrings__DefaultConnection
+        value: Data Source=/app/data/shop.db
+      - key: FRONTEND_URL
+        value: https://your-frontend-app.onrender.com  # Update this after deploying frontend
+
+  - type: web
+    name: shop-frontend
+    env: docker
+    dockerfilePath: ./frontend/Dockerfile
+    dockerContext: ./frontend
+    plan: free
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://shop-backend.onrender.com  # Update with your backend URL

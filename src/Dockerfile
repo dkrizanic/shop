@@ -27,9 +27,9 @@ RUN mkdir -p /app/data
 EXPOSE 80
 EXPOSE 5269
 
-# Set environment variables
+# Set environment variables (PORT will be provided by Render)
 ENV ASPNETCORE_ENVIRONMENT=Production
-ENV ASPNETCORE_URLS=http://+:80
+ENV ASPNETCORE_URLS=http://+:$PORT
 
 # Run the application
 ENTRYPOINT ["dotnet", "Shop.dll"]
