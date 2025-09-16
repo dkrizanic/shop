@@ -82,6 +82,16 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Ensure database is created and migrated
+if (app.Environment.IsProduction())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        context.Database.EnsureCreated();
+    }
+}
+
 // Add global exception handling middleware
 app.UseMiddleware<GlobalExceptionMiddleware>();
 
@@ -91,14 +101,18 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
     app.UseHttpsRedirection();
 }
+
+// Serve static files from wwwroot (frontend build)
+app.UseStaticFiles();
+
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Add a simple health check endpoint
-app.MapGet("/", () => "Shop API is running!");
-
 app.MapControllers();
+
+// Fallback to serve React app for client-side routing
+app.MapFallbackToFile("index.html");
 
 app.Run();
 

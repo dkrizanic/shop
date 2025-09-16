@@ -1,3 +1,11 @@
+# Use Node.js for building React frontend
+FROM node:18 AS frontend
+WORKDIR /frontend
+COPY ["../frontend/package*.json", "./"]
+RUN npm install
+COPY ../frontend ./
+RUN npm run build
+
 # Use the official .NET SDK image for building
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
@@ -11,6 +19,9 @@ RUN dotnet restore
 # Copy everything else and build
 COPY . ./
 RUN dotnet publish -c Release -o out
+
+# Copy frontend build to wwwroot
+COPY --from=frontend /frontend/build ./out/wwwroot
 
 # Use the runtime image for the final stage
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
@@ -31,6 +42,7 @@ EXPOSE 5269
 
 # Set environment variables (PORT will be provided by Render)
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV PORT=5000
 
 # Run the application
 ENTRYPOINT ["dotnet", "Shop.dll"]
