@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: shop-backend
+    name: shop-fullstack
     env: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
@@ -15,16 +15,6 @@ services:
       - key: JwtSettings__Audience
         value: ShopAPIUsers
       - key: ConnectionStrings__DefaultConnection
-        value: Data Source=/app/data/shop.db
+        value: Data Source=/tmp/shop.db
       - key: FRONTEND_URL
         value: https://shop-kkpi.onrender.com
-
-  - type: web
-    name: shop-frontend
-    env: docker
-    dockerfilePath: ./frontend/Dockerfile
-    dockerContext: ./frontend
-    plan: free
-    envVars:
-      - key: REACT_APP_API_URL
-        value: https://shop-backend.onrender.com
