@@ -35,13 +35,15 @@ namespace Shop.UnitTests.Services
                 Data = products,
                 TotalCount = 2,
                 PageNumber = 1,
-                PageSize = 2,
+                PageSize = 100, // Service fetches 100 items
                 TotalPages = 1,
                 HasPreviousPage = false,
                 HasNextPage = false
             };
 
-            _mockDummyJsonService.Setup(x => x.GetProductsAsync(parameters))
+            // Mock the actual call made by the service (fetches 100 items)
+            _mockDummyJsonService.Setup(x => x.GetProductsAsync(It.Is<ProductQueryParameters>(p =>
+                p.PageSize == 100 && p.PageNumber == 1)))
                 .ReturnsAsync(pagedResult);
 
             // Act
@@ -70,13 +72,15 @@ namespace Shop.UnitTests.Services
                 Data = products,
                 TotalCount = 2,
                 PageNumber = 1,
-                PageSize = 2,
+                PageSize = 100, // Service fetches 100 items
                 TotalPages = 1,
                 HasPreviousPage = false,
                 HasNextPage = false
             };
 
-            _mockDummyJsonService.Setup(x => x.GetProductsAsync(parameters))
+            // Mock the actual call made by the service (fetches 100 items)
+            _mockDummyJsonService.Setup(x => x.GetProductsAsync(It.Is<ProductQueryParameters>(p =>
+                p.PageSize == 100 && p.PageNumber == 1)))
                 .ReturnsAsync(pagedResult);
             _mockFavoriteRepository.Setup(x => x.GetUserFavoriteProductIdsAsync(userId))
                 .ReturnsAsync(new List<int> { 1 });
@@ -111,13 +115,15 @@ namespace Shop.UnitTests.Services
                 Data = products,
                 TotalCount = 1,
                 PageNumber = 1,
-                PageSize = 2,
+                PageSize = 100, // Service fetches 100 items
                 TotalPages = 1,
                 HasPreviousPage = false,
                 HasNextPage = false
             };
 
-            _mockDummyJsonService.Setup(x => x.SearchProductsAsync("laptop", parameters))
+            // Mock the actual call made by the service (with modified parameters)
+            _mockDummyJsonService.Setup(x => x.SearchProductsAsync("laptop", It.Is<ProductQueryParameters>(p =>
+                p.PageSize == 100 && p.PageNumber == 1 && p.SearchTerm == "laptop")))
                 .ReturnsAsync(pagedResult);
 
             // Act
@@ -126,7 +132,7 @@ namespace Shop.UnitTests.Services
             // Assert
             result.Should().NotBeNull();
             result.Data.Should().HaveCount(1);
-            _mockDummyJsonService.Verify(x => x.SearchProductsAsync("laptop", parameters), Times.Once);
+            _mockDummyJsonService.Verify(x => x.SearchProductsAsync("laptop", It.IsAny<ProductQueryParameters>()), Times.Once);
         }
 
         [Fact]
@@ -148,13 +154,15 @@ namespace Shop.UnitTests.Services
                 Data = products,
                 TotalCount = 1,
                 PageNumber = 1,
-                PageSize = 2,
+                PageSize = 100, // Service fetches 100 items
                 TotalPages = 1,
                 HasPreviousPage = false,
                 HasNextPage = false
             };
 
-            _mockDummyJsonService.Setup(x => x.GetProductsByCategoryAsync("smartphones", parameters))
+            // Mock the actual call made by the service (with modified parameters)
+            _mockDummyJsonService.Setup(x => x.GetProductsByCategoryAsync("smartphones", It.Is<ProductQueryParameters>(p =>
+                p.PageSize == 100 && p.PageNumber == 1 && p.Category == "smartphones")))
                 .ReturnsAsync(pagedResult);
 
             // Act
@@ -163,7 +171,7 @@ namespace Shop.UnitTests.Services
             // Assert
             result.Should().NotBeNull();
             result.Data.Should().HaveCount(1);
-            _mockDummyJsonService.Verify(x => x.GetProductsByCategoryAsync("smartphones", parameters), Times.Once);
+            _mockDummyJsonService.Verify(x => x.GetProductsByCategoryAsync("smartphones", It.IsAny<ProductQueryParameters>()), Times.Once);
         }
 
         [Fact]
