@@ -17,7 +17,7 @@ services:
       - key: ConnectionStrings__DefaultConnection
         value: Data Source=/app/data/shop.db
       - key: FRONTEND_URL
-        value: https://shop-frontend.onrender.com
+        value: https://shop-kkpi.onrender.com
 
   - type: web
     name: shop-frontend
