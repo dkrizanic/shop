@@ -133,7 +133,7 @@ const ProductFilters: React.FC<ProductFiltersProps> = ({ onFilterChange, current
                   <option value="">All Categories</option>
                   {categories.map(category => (
                     <option key={category.name} value={category.name}>
-                      {category.name} ({category.count})
+                      {category.name}
                     </option>
                   ))}
                 </select>
