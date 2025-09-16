@@ -1,9 +1,9 @@
 # Use Node.js for building React frontend
 FROM node:18 AS frontend
 WORKDIR /frontend
-COPY ["../frontend/package*.json", "./"]
+COPY ["frontend/package*.json", "./"]
 RUN npm install
-COPY ../frontend ./
+COPY frontend ./
 RUN npm run build
 
 # Use the official .NET SDK image for building
@@ -11,13 +11,13 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /app
 
 # Copy csproj files and restore dependencies
-COPY ["*.csproj", "./"]
-COPY ["Domain/Domain.csproj", "Domain/"]
-COPY ["Infrastructure/Infrastructure.csproj", "Infrastructure/"]
+COPY ["src/*.csproj", "./"]
+COPY ["src/Domain/Domain.csproj", "Domain/"]
+COPY ["src/Infrastructure/Infrastructure.csproj", "Infrastructure/"]
 RUN dotnet restore
 
 # Copy everything else and build
-COPY . ./
+COPY src ./
 RUN dotnet publish -c Release -o out
 
 # Copy frontend build to wwwroot
