@@ -3,17 +3,20 @@ import { ProductQueryParameters, PagedResult, Product } from '../types';
 
 // Determine API base URL based on environment
 const getApiBaseUrl = () => {
-  // If REACT_APP_API_URL is explicitly set, use it
-  if (process.env.REACT_APP_API_URL) {
-    return process.env.REACT_APP_API_URL;
-  }
-
-  // In production on Render (same origin deployment), use relative URLs
-  if (process.env.NODE_ENV === 'production' && window.location.hostname.includes('onrender.com')) {
+  // Check if we're on Render production (same origin deployment)
+  if (typeof window !== 'undefined' && window.location.hostname.includes('onrender.com')) {
+    console.log('Detected Render environment, using relative URLs');
     return '';
   }
 
+  // Use environment variable if set (for local Docker)
+  if (process.env.REACT_APP_API_URL) {
+    console.log('Using REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    return process.env.REACT_APP_API_URL;
+  }
+
   // Local development fallback
+  console.log('Using local development fallback');
   return 'http://localhost:8080';
 };
 

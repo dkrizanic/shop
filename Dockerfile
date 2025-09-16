@@ -4,6 +4,8 @@ WORKDIR /frontend
 COPY ["frontend/package*.json", "./"]
 RUN npm install
 COPY frontend ./
+# Remove local .env file to prevent conflicts in production
+RUN rm -f .env
 RUN npm run build
 
 # Use the official .NET SDK image for building
