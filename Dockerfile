@@ -33,10 +33,7 @@ RUN apt-get update && apt-get install -y sqlite3 && rm -rf /var/lib/apt/lists/*
 # Copy the published app
 COPY --from=build /app/out .
 
-# Create directory for database with proper permissions
-RUN mkdir -p /app/data && chmod 777 /app/data
-# Create empty database file to ensure it exists
-RUN touch /app/data/shop.db && chmod 666 /app/data/shop.db
+# Note: Using /tmp directory for SQLite database on Render (writable filesystem)
 
 # Expose port
 EXPOSE 80

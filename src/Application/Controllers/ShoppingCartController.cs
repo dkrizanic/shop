@@ -54,7 +54,17 @@ public class ShoppingCartController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = "Failed to add item to cart", error = ex.Message });
+            Console.WriteLine($"Add to cart error: {ex.Message}");
+            Console.WriteLine($"Inner exception: {ex.InnerException?.Message}");
+            Console.WriteLine($"Stack trace: {ex.StackTrace}");
+
+            var errorDetails = ex.InnerException?.Message ?? ex.Message;
+            return StatusCode(500, new {
+                message = "Failed to add item to cart",
+                error = ex.Message,
+                innerError = ex.InnerException?.Message,
+                details = errorDetails
+            });
         }
     }
 

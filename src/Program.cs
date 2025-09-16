@@ -31,7 +31,8 @@ if (builder.Environment.EnvironmentName != "Testing")
     // In production, always use the containerized database path
     if (builder.Environment.IsProduction())
     {
-        connectionString = "Data Source=/app/data/shop.db";
+        // Use /tmp which should be writable on Render
+        connectionString = "Data Source=/tmp/shop.db";
         Console.WriteLine($"Using production connection string: {connectionString}");
     }
     else if (string.IsNullOrEmpty(connectionString))
@@ -101,13 +102,14 @@ if (app.Environment.IsProduction())
 {
     try
     {
-        // Ensure the directory exists
-        var dataDir = "/app/data";
+        // Ensure the directory exists - use /tmp for Render
+        var dataDir = "/tmp";
         if (!Directory.Exists(dataDir))
         {
             Directory.CreateDirectory(dataDir);
             Console.WriteLine($"Created database directory: {dataDir}");
         }
+        Console.WriteLine($"Database directory exists: {dataDir}");
 
         using (var scope = app.Services.CreateScope())
         {
