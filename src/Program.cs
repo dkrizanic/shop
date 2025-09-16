@@ -28,10 +28,15 @@ if (builder.Environment.EnvironmentName != "Testing")
 {
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-    // Fallback to default SQLite path if connection string is empty
-    if (string.IsNullOrEmpty(connectionString))
+    // In production, always use the containerized database path
+    if (builder.Environment.IsProduction())
     {
         connectionString = "Data Source=/app/data/shop.db";
+        Console.WriteLine($"Using production connection string: {connectionString}");
+    }
+    else if (string.IsNullOrEmpty(connectionString))
+    {
+        connectionString = "Data Source=shop.db";
         Console.WriteLine($"Using fallback connection string: {connectionString}");
     }
 
