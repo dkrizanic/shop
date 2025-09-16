@@ -9,6 +9,10 @@ RUN npm ci --only=production
 # Copy source code
 COPY . .
 
+# Accept build-time environment variables
+ARG REACT_APP_API_URL
+ENV REACT_APP_API_URL=$REACT_APP_API_URL
+
 # Build the application
 RUN npm run build
 
