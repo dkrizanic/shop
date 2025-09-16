@@ -26,8 +26,17 @@ if (builder.Environment.IsProduction())
 // Add Entity Framework
 if (builder.Environment.EnvironmentName != "Testing")
 {
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+    // Fallback to default SQLite path if connection string is empty
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        connectionString = "Data Source=/app/data/shop.db";
+        Console.WriteLine($"Using fallback connection string: {connectionString}");
+    }
+
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+        options.UseSqlite(connectionString));
 }
 
 // Add HttpClient for DummyJSON API
@@ -90,12 +99,15 @@ if (app.Environment.IsProduction())
         using (var scope = app.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            Console.WriteLine($"Database connection string: {context.Database.GetConnectionString()}");
             context.Database.EnsureCreated();
+            Console.WriteLine("Database initialized successfully");
         }
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Database initialization failed: {ex.Message}");
+        Console.WriteLine($"Stack trace: {ex.StackTrace}");
         // Continue without database for now
     }
 }
