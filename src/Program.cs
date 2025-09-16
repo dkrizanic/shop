@@ -101,19 +101,36 @@ if (app.Environment.IsProduction())
 {
     try
     {
+        // Ensure the directory exists
+        var dataDir = "/app/data";
+        if (!Directory.Exists(dataDir))
+        {
+            Directory.CreateDirectory(dataDir);
+            Console.WriteLine($"Created database directory: {dataDir}");
+        }
+
         using (var scope = app.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             Console.WriteLine($"Database connection string: {context.Database.GetConnectionString()}");
-            context.Database.EnsureCreated();
+
+            // Force database creation
+            var created = context.Database.EnsureCreated();
+            Console.WriteLine($"Database creation result: {created}");
+
+            // Test database connection
+            var canConnect = context.Database.CanConnect();
+            Console.WriteLine($"Database connection test: {canConnect}");
+
             Console.WriteLine("Database initialized successfully");
         }
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Database initialization failed: {ex.Message}");
+        Console.WriteLine($"Inner exception: {ex.InnerException?.Message}");
         Console.WriteLine($"Stack trace: {ex.StackTrace}");
-        // Continue without database for now
+        throw; // Fail fast if database can't be initialized
     }
 }
 

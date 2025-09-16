@@ -169,7 +169,7 @@ const FavoritesList: React.FC = () => {
                 disabled={actionLoading === favorite.productId}
                 title="Remove from favorites"
               >
-                {actionLoading === favorite.productId ? '...' : '🗑️'}
+                {actionLoading === favorite.productId ? 'Removing...' : 'Remove'}
               </button>
             </div>
           </div>
